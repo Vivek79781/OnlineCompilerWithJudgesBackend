@@ -5,6 +5,7 @@ const auth = require('../../middleware/auth');
 const isAdmin = require('../../middleware/isAdmin');
 const validator = require('express-validator');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 
 // @route   GET api/questions
 // @desc    Get all questions
@@ -190,17 +191,26 @@ router.post('/:id/testcase',
     }
 );
 
-// @route   DELETE api/questions/:id/testcases/:testcase_id
+// @route   DELETE api/questions/:id/testcase/:testcase_id
 // @desc    Delete a testcase from a question
 // @access  Private
-router.delete('/:id/testcases/:testcase_id', auth, isAdmin, async (req, res) => {
+router.delete('/:id/testcase/:testcase_id', auth, isAdmin, async (req, res) => {
     try {
-        let Question = await Question.findById(req.params.id);
-        if (!Question) {
+        let question = await Question.findById(req.params.id);
+        if (!question) {
             return res.status(404).json({ msg: 'Question not found' });
+        } else if (!question.testcases.find(testcase => testcase._id.toString() === req.params.testcase_id)) {
+            return res.status(404).json({ msg: 'Testcase not found' });
         } else {
-            Question.testcases = Question.testcases.filter(testcase => testcase._id.toString() !== req.params.testcase_id)
-            await Question.save()
+            // Inactive the testcase
+            const result = await axios.put(
+                process.env.SPHERE_ENGINE_API_URL + 'problems/' + question.problemId + '/testcases/' + question.testcases.find(testcase => testcase._id.toString() === req.params.testcase_id).testId + '?access_token=' + process.env.SPHERE_ENGINE_ACCESS_TOKEN,
+                {
+                    active: false
+                }
+            );
+            question.testcases = question.testcases.filter(testcase => testcase._id.toString() !== req.params.testcase_id)
+            await question.save()
             return res.status(200).json({ msg: 'Testcase removed' });
         }
     } catch (err) {
@@ -223,21 +233,61 @@ router.post('/:id/submit',
             return res.status(400).json({ errors: errors.array() });
         }
         try {
-            let Question = await Question.findById(req.params.id);
-            if (!Question) {
+            let question = await Question.findById(req.params.id);
+            if (!question) {
                 return res.status(404).json({ msg: 'Question not found' });
             } else {
-                // Use Sphere Engine API to submit solution
+                // Find the compilerId
+                const compilers = await axios.get(
+                    process.env.SPHERE_ENGINE_API_URL + 'compilers?access_token=' + process.env.SPHERE_ENGINE_ACCESS_TOKEN,  
+                );
                 const { solution, language } = req.body
-                const response = await axios.post('https://api.compilers.sphere-engine.com/api/v4/submissions?access_token=' + process.env.SPHERE_ENGINE_TOKEN, {
-                    sourceCode: solution,
-                    compilerId: language,
-                    input: '',
-                    priority: 1,
-                    stdin: '',
-                    stdout: '',
-                    stderr: '',
-                })
+                // Equal Ignore Case
+                const compilerId = compilers.data.items.find(compiler => compiler.name.toLowerCase() === language.toLowerCase()).id 
+                // Use Sphere Engine API to submit solution
+                const form = {
+                    source: solution,
+                    compilerId,
+                    problemId: question.problemId
+                };
+                const result = await axios.post(
+                    process.env.SPHERE_ENGINE_API_URL + 'submissions?access_token=' + process.env.SPHERE_ENGINE_ACCESS_TOKEN,
+                    form
+                );
+                console.log(result.data)
+                const timeLimit = question.timeLimit || 1
+                // sleep for timeLimit seconds
+                while(true){
+                    await new Promise(resolve => setTimeout(resolve, timeLimit * 1000));
+                    // Use Sphere Engine API to get submission
+                    const submission = await axios.get(
+                        process.env.SPHERE_ENGINE_API_URL + 'submissions/' + result.data.id + '?access_token=' + process.env.SPHERE_ENGINE_ACCESS_TOKEN,
+                    );
+                    console.log(submission.data.result.status)
+                    if(submission.data.result.status.code > 7){
+                        const transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                user: process.env.EMAIL,
+                                pass: process.env.EMAIL_PASSWORD
+                            }
+                        });
+                        const mailOptions = {
+                            from: process.env.EMAIL,
+                            to: req.user.email,
+                            subject: 'Solution submitted',
+                            text: 'Your solution to question ' + question.title + ' has been submitted. Status: ' + submission.data.result.status.name + '(' + submission.data.result.status.code + ').'
+                        };
+                        transporter.sendMail(mailOptions, function (error, info) {
+                            if (error) {
+                                console.log('Error sending email');
+                            } else {
+                                console.log('Email sent: ' + info.response);
+                            }
+                        });
+                        return res.status(200).json({ msg: 'Solution submitted', result: submission.data.result });
+                    }
+                }
             }
         } catch (err) {
             console.error(err);
@@ -245,6 +295,29 @@ router.post('/:id/submit',
         }
     }
 );
+
+// @route   GET api/questions/:id/submit/:submission_id
+// @desc    Get a submission
+// @access  Private
+router.get('/:id/submit/:submission_id', auth, async (req, res) => {
+    try {
+        let question = await Question.findById(req.params.id);
+        if (!question) {
+            return res.status(404).json({ msg: 'Question not found' });
+        } else {
+            // Use Sphere Engine API to get submission
+            const result = await axios.get(
+                process.env.SPHERE_ENGINE_API_URL + 'submissions/' + req.params.submission_id + '?access_token=' + process.env.SPHERE_ENGINE_ACCESS_TOKEN,
+            );
+            console.log(result.data)
+            return res.status(200).json({ msg: 'Submission retrieved' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 
 
 module.exports = router;

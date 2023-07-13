@@ -32,13 +32,9 @@ router.post('/', async (req, res) => {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: 86400 });
 
         return res.status(200).json({
+            success: true,
             token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
+            email: user.email,
         });
     } catch (err) {
         console.error(err);
@@ -52,7 +48,7 @@ router.post('/', async (req, res) => {
 
 router.get('/user', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user);
+        const user = req.user;
         return res.status(200).json({
             success: true,
             data: user,

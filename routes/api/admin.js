@@ -60,14 +60,16 @@ router.post('/',
             await user.save()
 
             const payload = {
-                user: {
-                    id: user.id,
-                }
+                id: user.id,
             }
 
             jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 360000}, (err, token) => {
                 if(err) throw err;
-                res.json({token})
+                res.json({
+                    success: true,
+                    token,
+                    email: user.email,
+                })
             })
         } catch (err) {
             console.error(err);
@@ -108,14 +110,16 @@ router.post('/create',
             admin.password = await bcrypt.hash(password,salt)
             await admin.save()
             const payload = {
-                user: {
-                    id: user.id,
-                }
+                id: admin.id,
             }
 
             jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 360000}, (err, token) => {
                 if(err) throw err;
-                res.json({token})
+                res.json({
+                    success: true,
+                    token,
+                    email: admin.email,
+                })
             })
         } catch (err) {
             console.error(err);
@@ -135,7 +139,12 @@ router.delete('/:id', auth, isAdmin, async (req, res) => {
             return res.status(404).json({ msg: 'User not found' });
         }
         await User.findByIdAndRemove(req.params.id);
-        return res.status(200).json({ msg: 'Admin removed' });
+        return res.status(200).json({ 
+            success: true,
+            data: {
+                msg: 'Admin removed',
+            }, 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -178,7 +187,10 @@ router.put('/:id',
                 admin.password = await bcrypt.hash(password,salt)
                 await admin.save()
                 
-                return res.status(200).json({ msg: 'Admin updated' });
+                return res.status(200).json({ 
+                    success: true,
+                    data: admin,
+                 });
             }
         } catch (err) {
             console.error(err);
