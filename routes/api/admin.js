@@ -63,7 +63,7 @@ router.post('/',
                 id: user.id,
             }
 
-            jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 360000}, (err, token) => {
+            jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: "24h"}, (err, token) => {
                 if(err) throw err;
                 res.json({
                     success: true,
@@ -113,7 +113,7 @@ router.post('/create',
                 id: admin.id,
             }
 
-            jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: 360000}, (err, token) => {
+            jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: "24h"}, (err, token) => {
                 if(err) throw err;
                 res.json({
                     success: true,
