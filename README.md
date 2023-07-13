@@ -30,8 +30,6 @@
 
 To make a Coding platform where participants can solve questions for the problems provided, run the questions using the Sphere Engine, and the admin can add, edit or delete the questions.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- GETTING STARTED -->
 
 ## Getting Started
@@ -58,5 +56,3 @@ This is an example of how to list things you need to use the software and how to
    ```sh
    npm install
    ```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
