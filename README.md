@@ -74,36 +74,36 @@ This is an example of how to list things you need to use the software and how to
 
 ### 1. Register User
 
-![Register User](screenshots\Register%20User%20Postman.png)
+![Register User](screenshots/Register%20User%20Postman.png)
 
 ### 2. Register Admin
 
-![Register Admin](screenshots\Register%20Admin%20Postman.png)
+![Register Admin](screenshots/Register%20Admin%20Postman.png)
 
 ### 3. Login
 
-![Login User](screenshots\Login%20User%20Postman.png)
+![Login User](screenshots/Login%20User%20Postman.png)
 
 ### 4. Add Question
 
-![Add Question](screenshots\Create%20Question%20Postman.png)
+![Add Question](screenshots/Create%20Question%20Postman.png)
 
 ### 5. Edit Question
 
-![Update Question](screenshots\Update%20Question%20Postman.png)
+![Update Question](screenshots/Update%20Question%20Postman.png)
 
 ### 6. Delete Question
 
-![Delete Question](screenshots\Delete%20Question%20Postman.png)
+![Delete Question](screenshots/Delete%20Question%20Postman.png)
 
 ### 7. Add Test Case
 
-![Add Test Case](screenshots\Create%20Testcase%20Postman.png)
+![Add Test Case](screenshots/Create%20Testcase%20Postman.png)
 
 ### 8. Delete Test Case
 
-![Delete Test Case](screenshots\Delete%20Testcase%20Postman.png)
+![Delete Test Case](screenshots/Delete%20Testcase%20Postman.png)
 
 ### 9. Run Code
 
-![Run Code](screenshots\Submit%20Code%20Postman.png)
+![Run Code](screenshots/Submit%20Code%20Postman.png)
