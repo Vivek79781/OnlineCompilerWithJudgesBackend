@@ -58,7 +58,10 @@ router.post('/',
             newQuestion.problemId = result.data.id;
             newQuestion.problemCode = result.data.code;
             await newQuestion.save()
-            return res.status(200).json({ msg: 'Question created' });
+            return res.status(200).json({
+                success: true,
+                data: newQuestion,
+            });
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: 'Server error' });
@@ -100,7 +103,10 @@ router.put('/:id',
                     form
                 );
                 await question.save()
-                return res.status(200).json({ msg: 'Question updated' });
+                return res.status(200).json({ 
+                    success: true,
+                    data: question,
+                });
             }
         } catch (err) {
             console.error(err);
@@ -182,7 +188,10 @@ router.post('/:id/testcase',
                 console.log(result.data)
                 question.testcases[question.testcases.length - 1].testId = result.data.number
                 await question.save()
-                return res.status(200).json({ msg: 'Testcase added' });
+                return res.status(200).json({
+                    success: true,
+                    data: question.testcases[question.testcases.length - 1],
+                });
             }
         } catch (err) {
             console.error(err);
